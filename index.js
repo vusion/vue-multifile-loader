@@ -4,6 +4,7 @@ const loaderUtils = require('loader-utils');
 
 const genId = require('vision-vue-loader/lib/gen-id');
 const templateCompilerLoader = require.resolve('vision-vue-loader/lib/template-compiler');
+const styleRewriterLoader = require.resolve('vision-vue-loader/lib/style-rewriter');
 
 module.exports = function (content) {
     const query = loaderUtils.parseQuery(this.query);
@@ -33,19 +34,20 @@ module.exports = function (content) {
         const cssLoaderQuery = JSON.stringify({
             sourceMap: needCssSourceMap,
             modules: true,
-            importLoaders: true,
-            // localIdentName: vueName + '_[local]',
+            importLoaders: 1,
+            localIdentName: vueName + '_[local]',
         });
 
-        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader!css-loader?${cssLoaderQuery}!${cssModuleFilePath}`);
+        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader!css-loader?${cssLoaderQuery}!${styleRewriterLoader}?id=${moduleId}!${cssModuleFilePath}`);
         outputs.push('\n/* styles */');
         outputs.push('var __vue_styles__ = {};');
         outputs.push(`__vue_styles__['${moduleName}'] = require(${requireString});`);
     } else if (fs.existsSync(cssIndexFilePath)) {
-        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader!css-loader?importLoaders&${needCssSourceMap ? 'sourceMap' : ''}!${cssIndexFilePath}`);
+        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader!css-loader?importLoaders&${needCssSourceMap ? 'sourceMap' : ''}!${styleRewriterLoader}?id=${moduleId}!${cssIndexFilePath}`);
         outputs.push('\n/* styles */');
         outputs.push(`require(${requireString});`);
     }
+    // @todo: scoped
 
     // add require for js
     const jsFilePath = this.resourcePath;
