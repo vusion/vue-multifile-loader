@@ -1,0 +1,154 @@
+const fs = require('fs');
+const path = require('path');
+const loaderUtils = require('loader-utils');
+
+const genId = require('vision-vue-loader/lib/gen-id');
+const templateCompilerLoader = require.resolve('vision-vue-loader/lib/template-compiler');
+
+
+loaderUtils.queryStringify = (query) => {
+    return Object.keys(query).map((key) => key + '=' + query[key]).join('&');
+};
+
+module.exports = function (content) {
+    const query = loaderUtils.parseQuery(this.query);
+    const options = Object.assign({}, this.options.vue, query);
+
+    const vuePath = path.dirname(this.resourcePath);
+    const vueName = path.basename(vuePath, '.vue');
+    const vueDir = path.dirname(vuePath);
+    const moduleId = 'data-v-' + genId(vuePath);
+    let moduleName;
+
+    const isServer = this.options.target === 'node';
+    const isProduction = this.minimize || process.env.NODE_ENV === 'production';
+    const needCssSourceMap = !isProduction && this.sourceMap && options.cssSourceMap !== false;
+
+    let outputs = [];
+    const exports = [];
+
+    // add require for css
+    const cssFilePath = path.join(vuePath, 'module.css');
+    if (fs.existsSync(cssFilePath)) {
+        // @todo: only support `$style` moduleName
+        moduleName = '$style';
+
+        const cssLoaderQuery = JSON.stringify({
+            sourceMap: needCssSourceMap,
+            modules: true,
+            importLoaders: true,
+            localIdentName: '[name]_[local]',
+        });
+
+        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader!css-loader${cssLoaderQuery}!${cssFilePath}`);
+
+        outputs.push('\n/* styles */');
+        outputs.push('var __vue_styles = {};');
+        outputs.push(`__vue_styles[${moduleName}]__ = require(${requireString});`);
+    }
+
+    // add require for js
+    const jsFilePath = this.resourcePath;
+    {
+        const requireString = loaderUtils.stringifyRequest(this, `!!babel-loader!${jsFilePath}`);
+
+        outputs.push('\n/* script */');
+        outputs.push(`var __vue_exports__ = require(${requireString});`);
+
+        const checkNamedExports = `if (Object.keys(__vue_exports__).some(function (key) { return key !== "default" && key !== "__esModule" })) {
+            console.error("named exports are not supported in *.vue files.");
+        }`;
+
+        exports.push(`
+            __vue_options = __vue_exports__ = __vue_exports__ || {};
+            // ES6 modules interop
+            if (typeof __vue_exports__.default === 'object' || typeof __vue_exports__.default === 'function') {
+                ${isProduction ? '' : checkNamedExports}
+                __vue_options = __vue_exports__ = __vue_exports__.default;
+            }
+            // constructor export interop
+            if (typeof __vue_options === 'function') {
+                __vue_options = __vue_options.options;
+            }
+            `);
+
+            // add filename in dev
+            // (isProduction ? '' : ('__vue_options__.__file = ' + JSON.stringify(jsFilePath))) + '\n'
+            // exports.push(`if (typeof __vue_options__.name === 'undefined') {
+            //     __vue_options__.name = ${JSON.stringify(path.parse(jsFilePath).name)};
+            // }`)
+    }
+
+    // add require for html
+    const htmlFilePath = path.join(vuePath, 'index.html');
+    if (fs.existsSync(htmlFilePath)) {
+        const requireString = loaderUtils.stringifyRequest(this, `!!${templateCompilerLoader}?id=${moduleId}!${htmlFilePath}`);
+
+        outputs.push('\n/* template */');
+        outputs.push(`var __vue_template__ = require(${requireString});`);
+
+        // attach render functions to exported options
+        exports.push(`
+            __vue_options__.render = __vue_template__.render;
+            __vue_options__.staticRenderFns = __vue_template__.staticRenderFns;
+        `);
+    }
+
+    if (moduleName) {
+        exports.push(`
+            if (!__vue_options__.computed) __vue_options__.computed = {};
+            var __vue_style__ = __vue_styles__[${moduleName}];
+            __vue_options__.computed[key] = function () { return __vue_style__; };
+        `);
+    }
+
+    if (!query.inject) {
+        outputs = outputs.concat(exports);
+        // hot reload
+        if (!isServer && !isProduction) {
+            outputs.push(`
+                /* hot reload */
+                if (module.hot) {
+                    (function () {
+                        var hotAPI = require('vue-hot-reload-api');
+                        hotAPI.install(require('vue'), false);
+                        if (!hotAPI.compatible) return;
+                        module.hot.accept();
+                        if (!module.hot.data) {
+                            hotAPI.createRecord('{$moduleId}', __vue_options__);
+                        } else {
+                            hotAPI.reload('${moduleId}', __vue_options__);
+                        }
+                    })();
+                }
+            `);
+        }
+        // check functional components used with templates
+        if (!isProduction) {
+            outputs.push(`
+                if (__vue_options__.functional && typeof __vue_template__ !== 'undefined') {
+                    console.error('[vue-multifile-loader] ${vuePath}: functional components are not supported with template, they should use render funtions.');
+                }
+            `);
+        }
+        // final export
+        if (options.esModule) {
+            outputs.push(`
+                exports.__esModule = true;
+                exports['default'] = __vue_exports__;
+            `);
+        } else
+            outputs.push(`module.exports = __vue_exports__;`);
+    } else {
+        // inject-loader support
+        outputs.push(`
+            /* dependency injection */
+            module.exports = function (injections) {
+                __vue_exports__ = __vue_exports__(injections);
+        `);
+        outputs = outputs.concat(exports);
+        outputs.push('return __vue_exports__\n}');
+    }
+
+    return outputs.join('\n');
+}
