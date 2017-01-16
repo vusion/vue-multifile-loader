@@ -5,14 +5,9 @@ const loaderUtils = require('loader-utils');
 const genId = require('vision-vue-loader/lib/gen-id');
 const templateCompilerLoader = require.resolve('vision-vue-loader/lib/template-compiler');
 
-
-loaderUtils.queryStringify = (query) => {
-    return Object.keys(query).map((key) => key + '=' + query[key]).join('&');
-};
-
 module.exports = function (content) {
     const query = loaderUtils.parseQuery(this.query);
-    const options = Object.assign({}, this.options.vue, query);
+    const options = this.options.__vueOptions__ = Object.assign({}, this.options.vue, query);
 
     const vuePath = path.dirname(this.resourcePath);
     const vueName = path.basename(vuePath, '.vue');
@@ -28,29 +23,34 @@ module.exports = function (content) {
     const exports = [];
 
     // add require for css
-    const cssFilePath = path.join(vuePath, 'module.css');
-    if (fs.existsSync(cssFilePath)) {
+    let cssModuleFilePath = path.join(vuePath, 'module.css');
+    let cssIndexFilePath = path.join(vuePath, 'index.css');
+    this.addDependency(cssModuleFilePath);
+    this.addDependency(cssIndexFilePath);
+    if (fs.existsSync(cssModuleFilePath)) {
         // @todo: only support `$style` moduleName
         moduleName = '$style';
-
         const cssLoaderQuery = JSON.stringify({
             sourceMap: needCssSourceMap,
             modules: true,
             importLoaders: true,
-            localIdentName: '[name]_[local]',
+            // localIdentName: vueName + '_[local]',
         });
 
-        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader!css-loader${cssLoaderQuery}!${cssFilePath}`);
-
+        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader!css-loader?${cssLoaderQuery}!${cssModuleFilePath}`);
         outputs.push('\n/* styles */');
-        outputs.push('var __vue_styles = {};');
-        outputs.push(`__vue_styles[${moduleName}]__ = require(${requireString});`);
+        outputs.push('var __vue_styles__ = {};');
+        outputs.push(`__vue_styles__['${moduleName}'] = require(${requireString});`);
+    } else if (fs.existsSync(cssIndexFilePath)) {
+        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader!css-loader?importLoaders&${needCssSourceMap ? 'sourceMap' : ''}!${cssIndexFilePath}`);
+        outputs.push('\n/* styles */');
+        outputs.push(`require(${requireString});`);
     }
 
     // add require for js
     const jsFilePath = this.resourcePath;
     {
-        const requireString = loaderUtils.stringifyRequest(this, `!!babel-loader!${jsFilePath}`);
+        const requireString = loaderUtils.stringifyRequest(this, `!${jsFilePath}`); // set babel-loader as a pre-loader
 
         outputs.push('\n/* script */');
         outputs.push(`var __vue_exports__ = require(${requireString});`);
@@ -60,15 +60,15 @@ module.exports = function (content) {
         }`;
 
         exports.push(`
-            __vue_options = __vue_exports__ = __vue_exports__ || {};
+            __vue_options__ = __vue_exports__ = __vue_exports__ || {};
             // ES6 modules interop
             if (typeof __vue_exports__.default === 'object' || typeof __vue_exports__.default === 'function') {
                 ${isProduction ? '' : checkNamedExports}
-                __vue_options = __vue_exports__ = __vue_exports__.default;
+                __vue_options__ = __vue_exports__ = __vue_exports__.default;
             }
             // constructor export interop
             if (typeof __vue_options === 'function') {
-                __vue_options = __vue_options.options;
+                __vue_options__ = __vue_options__.options;
             }
             `);
 
@@ -81,6 +81,7 @@ module.exports = function (content) {
 
     // add require for html
     const htmlFilePath = path.join(vuePath, 'index.html');
+    this.addDependency(htmlFilePath);
     if (fs.existsSync(htmlFilePath)) {
         const requireString = loaderUtils.stringifyRequest(this, `!!${templateCompilerLoader}?id=${moduleId}!${htmlFilePath}`);
 
@@ -97,8 +98,8 @@ module.exports = function (content) {
     if (moduleName) {
         exports.push(`
             if (!__vue_options__.computed) __vue_options__.computed = {};
-            var __vue_style__ = __vue_styles__[${moduleName}];
-            __vue_options__.computed[key] = function () { return __vue_style__; };
+            var __vue_style__ = __vue_styles__['${moduleName}'];
+            __vue_options__.computed['${moduleName}'] = function () { return __vue_style__; };
         `);
     }
 
