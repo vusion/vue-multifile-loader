@@ -2,9 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const loaderUtils = require('loader-utils');
 
-const genId = require('vision-vue-loader/lib/gen-id');
-const templateCompilerLoader = require.resolve('vision-vue-loader/lib/template-compiler');
-const styleRewriterLoader = require.resolve('vision-vue-loader/lib/style-rewriter');
+const genId = require('vue-loader/lib/gen-id');
+const templateCompilerLoader = require.resolve('vue-loader/lib/template-compiler');
+const styleRewriterLoader = require.resolve('vue-loader/lib/style-rewriter');
 
 module.exports = function (content) {
     const query = loaderUtils.parseQuery(this.query);
@@ -26,8 +26,8 @@ module.exports = function (content) {
     // add require for css
     let cssModuleFilePath = path.join(vuePath, 'module.css');
     let cssIndexFilePath = path.join(vuePath, 'index.css');
-    this.addDependency(cssModuleFilePath);
-    this.addDependency(cssIndexFilePath);
+    // this.addDependency(cssModuleFilePath);
+    // this.addDependency(cssIndexFilePath);
     if (fs.existsSync(cssModuleFilePath)) {
         // @todo: only support `$style` moduleName
         moduleName = '$style';
@@ -83,7 +83,7 @@ module.exports = function (content) {
 
     // add require for html
     const htmlFilePath = path.join(vuePath, 'index.html');
-    this.addDependency(htmlFilePath);
+    // this.addDependency(htmlFilePath);
     if (fs.existsSync(htmlFilePath)) {
         const requireString = loaderUtils.stringifyRequest(this, `!!${templateCompilerLoader}?id=${moduleId}!${htmlFilePath}`);
 
@@ -118,7 +118,7 @@ module.exports = function (content) {
                         if (!hotAPI.compatible) return;
                         module.hot.accept();
                         if (!module.hot.data) {
-                            hotAPI.createRecord('{$moduleId}', __vue_options__);
+                            hotAPI.createRecord('${moduleId}', __vue_options__);
                         } else {
                             hotAPI.reload('${moduleId}', __vue_options__);
                         }

@@ -1,7 +1,7 @@
 {
   "name": "vue-multifile-loader",
   "description": "Webpack loader for multifile Vue components.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Rainfore <rainforest92@126.com>",
   "main": "./index.js",
   "repository": "vision-app/vue-multifile-loader",
@@ -24,12 +24,12 @@
       "loader"
   ],
   "dependencies": {
-    "vision-vue-loader": "0.1.0",
-    "vue-template-compiler": "^2.1.8",
+    "vue-loader": "^10.0.2",
     "vue-hot-reload-api": "^2.0.1"
   },
   "peerDependencies": {
-      "css-loader": "*",
-      "vue-style-loader": "*"
+    "vue-template-compiler": "^2.1.8",
+    "css-loader": "*",
+    "vue-style-loader": "*"
   }
 }
