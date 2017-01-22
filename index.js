@@ -7,6 +7,7 @@ const templateCompilerLoader = require.resolve('vue-loader/lib/template-compiler
 const styleRewriterLoader = require.resolve('vue-loader/lib/style-rewriter');
 
 module.exports = function (content) {
+    this.cacheable();
     const query = loaderUtils.parseQuery(this.query);
     const options = this.options.__vueOptions__ = Object.assign({}, this.options.vue, query);
 
@@ -38,7 +39,7 @@ module.exports = function (content) {
             localIdentName: vueName + '_[local]',
         });
 
-        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader!css-loader?${cssLoaderQuery}!${styleRewriterLoader}?id=${moduleId}!${cssModuleFilePath}`);
+        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader!css-loader?${cssLoaderQuery}!${styleRewriterLoader}?id=${moduleId}!import-global-loader!${cssModuleFilePath}`);
         outputs.push('\n/* styles */');
         outputs.push('var __vue_styles__ = {};');
         outputs.push(`__vue_styles__['${moduleName}'] = require(${requireString});`);
