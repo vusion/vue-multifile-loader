@@ -62,14 +62,14 @@ module.exports = function (content) {
         }`;
 
         exports.push(`
-            __vue_options__ = __vue_exports__ = __vue_exports__ || {};
+            var __vue_options__ = __vue_exports__ = __vue_exports__ || {};
             // ES6 modules interop
             if (typeof __vue_exports__.default === 'object' || typeof __vue_exports__.default === 'function') {
                 ${isProduction ? '' : checkNamedExports}
                 __vue_options__ = __vue_exports__ = __vue_exports__.default;
             }
             // constructor export interop
-            if (typeof __vue_options === 'function') {
+            if (typeof __vue_options__ === 'function') {
                 __vue_options__ = __vue_options__.options;
             }
             `);
