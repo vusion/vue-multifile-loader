@@ -39,12 +39,12 @@ module.exports = function (content) {
             localIdentName: vueName + '_[local]',
         });
 
-        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader!css-loader?${cssLoaderQuery}!${styleRewriterLoader}?id=${moduleId}!import-global-loader!${cssModuleFilePath}`);
+        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader?insertAt=byId!css-loader?${cssLoaderQuery}!${styleRewriterLoader}?id=${moduleId}!import-global-loader!${cssModuleFilePath}`);
         outputs.push('\n/* styles */');
         outputs.push('var __vue_styles__ = {};');
         outputs.push(`__vue_styles__['${moduleName}'] = require(${requireString});`);
     } else if (fs.existsSync(cssIndexFilePath)) {
-        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader!css-loader?importLoaders&${needCssSourceMap ? 'sourceMap' : ''}!${styleRewriterLoader}?id=${moduleId}!${cssIndexFilePath}`);
+        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader?insertAt=byId!css-loader?importLoaders&${needCssSourceMap ? 'sourceMap' : ''}!${styleRewriterLoader}?id=${moduleId}!import-global-loader!${cssIndexFilePath}`);
         outputs.push('\n/* styles */');
         outputs.push(`require(${requireString});`);
     }
@@ -102,6 +102,9 @@ module.exports = function (content) {
         exports.push(`
             if (!__vue_options__.computed) __vue_options__.computed = {};
             var __vue_style__ = __vue_styles__['${moduleName}'];
+            // extend $styles from super
+            if (__vue_options__.computed['${moduleName}'])
+                __vue_style__ = Object.assign(__vue_options__.computed['${moduleName}'](), __vue_style__);
             __vue_options__.computed['${moduleName}'] = function () { return __vue_style__; };
         `);
     }
