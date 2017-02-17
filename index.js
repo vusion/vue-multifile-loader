@@ -14,7 +14,7 @@ module.exports = function (content) {
     const vuePath = path.dirname(this.resourcePath);
     const vueName = path.basename(vuePath, '.vue');
     const vueDir = path.dirname(vuePath);
-    const moduleId = 'data-v-' + genId(vuePath);
+    const moduleId = 'data-v-' + genId(vuePath, this._compiler.context);
     let moduleName;
 
     const isServer = this.options.target === 'node';
