@@ -27,8 +27,6 @@ module.exports = function (content) {
     // add require for css
     let cssModuleFilePath = path.join(vuePath, 'module.css');
     let cssIndexFilePath = path.join(vuePath, 'index.css');
-    // this.addDependency(cssModuleFilePath);
-    // this.addDependency(cssIndexFilePath);
     if (fs.existsSync(cssModuleFilePath)) {
         // @todo: only support `$style` moduleName
         moduleName = '$style';
@@ -39,12 +37,12 @@ module.exports = function (content) {
             localIdentName: vueName + '_[local]',
         });
 
-        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader?insertAt=byId!css-loader?${cssLoaderQuery}!${styleRewriterLoader}?id=${moduleId}!import-global-loader!${cssModuleFilePath}`);
+        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader!css-loader?${cssLoaderQuery}!${styleRewriterLoader}?id=${moduleId}!import-global-loader!${cssModuleFilePath}`);
         outputs.push('\n/* styles */');
         outputs.push('var __vue_styles__ = {};');
         outputs.push(`__vue_styles__['${moduleName}'] = require(${requireString});`);
     } else if (fs.existsSync(cssIndexFilePath)) {
-        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader?insertAt=byId!css-loader?importLoaders&${needCssSourceMap ? 'sourceMap' : ''}!${styleRewriterLoader}?id=${moduleId}!import-global-loader!${cssIndexFilePath}`);
+        const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader!css-loader?importLoaders&${needCssSourceMap ? 'sourceMap' : ''}!${styleRewriterLoader}?id=${moduleId}!import-global-loader!${cssIndexFilePath}`);
         outputs.push('\n/* styles */');
         outputs.push(`require(${requireString});`);
     }
@@ -73,18 +71,17 @@ module.exports = function (content) {
             if (typeof __vue_options__ === 'function') {
                 __vue_options__ = __vue_options__.options;
             }
-            `);
+        `);
 
-            // add filename in dev
-            // (isProduction ? '' : ('__vue_options__.__file = ' + JSON.stringify(jsFilePath))) + '\n'
-            // exports.push(`if (typeof __vue_options__.name === 'undefined') {
-            //     __vue_options__.name = ${JSON.stringify(path.parse(jsFilePath).name)};
-            // }`)
+        // add filename in dev
+        !isProduction && exports.push(`__vue_options__.__file = ${JSON.stringify(jsFilePath)};`);
+        exports.push(`if (typeof __vue_options__.name === 'undefined') {
+            __vue_options__.name = ${JSON.stringify(vueName)};
+        }`);
     }
 
     // add require for html
     const htmlFilePath = path.join(vuePath, 'index.html');
-    // this.addDependency(htmlFilePath);
     if (fs.existsSync(htmlFilePath)) {
         const requireString = loaderUtils.stringifyRequest(this, `!!${templateCompilerLoader}?id=${moduleId}!${htmlFilePath}`);
 
