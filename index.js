@@ -8,8 +8,7 @@ const styleRewriterLoader = require.resolve('vue-loader/lib/style-rewriter');
 
 module.exports = function (content) {
     this.cacheable();
-    const query = loaderUtils.parseQuery(this.query);
-    const options = this.options.__vueOptions__ = Object.assign({}, this.options.vue, query);
+    const options = this.options.__vueOptions__ = Object.assign({}, this.options.vue, loaderUtils.getOptions(this));
 
     const vuePath = path.dirname(this.resourcePath);
     const vueName = path.basename(vuePath, '.vue');
@@ -106,7 +105,7 @@ module.exports = function (content) {
         `);
     }
 
-    if (!query.inject) {
+    if (!options.inject) {
         outputs = outputs.concat(exports);
         // hot reload
         if (!isServer && !isProduction) {
