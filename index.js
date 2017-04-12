@@ -130,7 +130,7 @@ module.exports = function (content) {
         if (!isProduction) {
             outputs.push(`
                 if (__vue_options__.functional && typeof __vue_template__ !== 'undefined') {
-                    console.error('[vue-multifile-loader] ${vuePath}: functional components are not supported with template, they should use render funtions.');
+                    console.error('[vue-multifile-loader] ${vueName}: functional components are not supported with template, they should use render funtions.');
                 }
             `);
         }
