@@ -1,7 +1,7 @@
 {
   "name": "vue-multifile-loader",
   "description": "Webpack loader for multifile Vue components.",
-  "version": "0.0.10",
+  "version": "0.1.0",
   "author": "Rainfore <rainforest92@126.com>",
   "main": "./index.js",
   "repository": "vusion/vue-multifile-loader",

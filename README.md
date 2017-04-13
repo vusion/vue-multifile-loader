@@ -17,3 +17,13 @@ index.md
 test.js
 module.css
 ```
+
+## Webpack Config
+
+``` javascript
+module: {
+    rules: [
+        { test: /\.vue[\\/]index\.js$/, loader: 'vue-multifile-loader', options: same_as_vue_loader },
+    ],
+}
+```
