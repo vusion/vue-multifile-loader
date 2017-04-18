@@ -39,7 +39,8 @@ module.exports = function (content) {
         const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader!css-loader?${cssLoaderQuery}!${styleRewriterLoader}?id=${moduleId}!import-global-loader!${cssModuleFilePath}`);
         outputs.push('\n/* styles */');
         outputs.push('var __vue_styles__ = {};');
-        outputs.push(`__vue_styles__['${moduleName}'] = require(${requireString});`);
+        outputs.push(`var moduleName = '${moduleName}';`);
+        outputs.push(`__vue_styles__[moduleName] = require(${requireString});`);
     } else if (fs.existsSync(cssIndexFilePath)) {
         const requireString = loaderUtils.stringifyRequest(this, `!!vue-style-loader!css-loader?importLoaders&${needCssSourceMap ? 'sourceMap' : ''}!${styleRewriterLoader}?id=${moduleId}!import-global-loader!${cssIndexFilePath}`);
         outputs.push('\n/* styles */');
@@ -97,8 +98,13 @@ module.exports = function (content) {
     if (moduleName) {
         exports.push(`
             var computed = Object.create(__vue_options__.computed || null);
-            var __vue_style__ = __vue_styles__['${moduleName}'];
-            computed['${moduleName}'] = function () { return __vue_style__; };
+            var __vue_style__ = __vue_styles__[moduleName];
+            if (computed[moduleName]) {
+                var __super_vue_style__ = computed[moduleName]();
+                if (__vue_options__.name === __super_vue_style__.root)
+                    __vue_style__ = Object.assign({}, __super_vue_style__, __vue_style__);
+            }
+            computed[moduleName] = function () { return __vue_style__; };
             __vue_options__.computed = computed;
         `);
     }
