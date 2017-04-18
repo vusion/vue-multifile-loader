@@ -96,12 +96,10 @@ module.exports = function (content) {
 
     if (moduleName) {
         exports.push(`
-            if (!__vue_options__.computed) __vue_options__.computed = {};
+            var computed = Object.create(__vue_options__.computed || null);
             var __vue_style__ = __vue_styles__['${moduleName}'];
-            // extend $styles from super
-            if (__vue_options__.computed['${moduleName}'])
-                __vue_style__ = Object.assign(__vue_options__.computed['${moduleName}'](), __vue_style__);
-            __vue_options__.computed['${moduleName}'] = function () { return __vue_style__; };
+            computed['${moduleName}'] = function () { return __vue_style__; };
+            __vue_options__.computed = computed;
         `);
     }
 
