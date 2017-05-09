@@ -127,7 +127,7 @@ module.exports = function (content) {
             if (moduleName) {
                 if (!cssModules) {
                     cssModules = {};
-                    needsHotReload && outputs.push('var cssModules = {};');
+                    outputs.push('var cssModules = {};');
                 }
 
                 if (moduleName in cssModules) {
