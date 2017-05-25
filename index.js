@@ -4,10 +4,10 @@ const hash = require('hash-sum');
 const loaderUtils = require('loader-utils');
 const tryRequire = require('vue-loader/lib/utils/try-require');
 
-const genId = require('vue-loader/lib/utils/gen-id');
-const styleCompilerPath = require.resolve('vue-loader/lib/style-compiler');
-const templateCompilerPath = require.resolve('vue-loader/lib/template-compiler');
-const componentNormalizerPath = require.resolve('vue-loader/lib/component-normalizer');
+const genId = require('vusion-vue-loader/lib/utils/gen-id');
+const styleCompilerPath = require.resolve('vusion-vue-loader/lib/style-compiler');
+const templateCompilerPath = require.resolve('vusion-vue-loader/lib/template-compiler');
+const componentNormalizerPath = require.resolve('vusion-vue-loader/lib/component-normalizer');
 
 // check whether default js loader exists
 const hasBabel = !!tryRequire('babel-loader');
@@ -50,6 +50,7 @@ module.exports = function (content) {
         transformToRequire: options.transformToRequire,
         preserveWhitespace: options.preserveWhitespace,
         buble: options.buble,
+        isServer: options.isServer,
         // only pass compilerModules if it's a path string
         compilerModules: typeof options.compilerModules === 'string' ? options.compilerModules : undefined,
     });
@@ -283,6 +284,23 @@ module.exports = function (content) {
             // dispose
             outputs.push('module.hot.dispose(function (data) {' + (cssModules ? 'data.cssModules = cssModules;' : '') + 'disposed = true; });');
             outputs.push('})()}');
+            // bridge
+            options.isServer && outputs.push(`
+                (function(cb){
+                    var elapsedCount = 0;
+                    var getBridgeTimer = setInterval(()=>{
+                        elapsedCount++;
+                        if (window.bridge || elapsedCount > 30) {
+                            clearInterval(getBridgeTimer);
+                            window.bridge && cb();
+                        }
+                    }, 100);
+                })(function(){
+                    window.bridge.on('${moduleId}', function(renderFunc) {
+                        require('vue-hot-reload-api').rerender('${moduleId}', renderFunc);
+                    });
+                });
+            `);
         }
 
         // final export
