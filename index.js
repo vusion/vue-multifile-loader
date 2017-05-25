@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const hash = require('hash-sum');
 const loaderUtils = require('loader-utils');
-const tryRequire = require('vue-loader/lib/utils/try-require');
+const tryRequire = require('vusion-vue-loader/lib/utils/try-require');
 
 const genId = require('vusion-vue-loader/lib/utils/gen-id');
 const styleCompilerPath = require.resolve('vusion-vue-loader/lib/style-compiler');
