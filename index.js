@@ -286,17 +286,17 @@ module.exports = function (content) {
             outputs.push('})()}');
             // bridge
             options.isServer && outputs.push(`
-                (function(cb){
+                (function (cb) {
                     var elapsedCount = 0;
-                    var getBridgeTimer = setInterval(()=>{
+                    var getBridgeTimer = setInterval(() => {
                         elapsedCount++;
                         if (window.bridge || elapsedCount > 30) {
                             clearInterval(getBridgeTimer);
                             window.bridge && cb();
                         }
                     }, 100);
-                })(function(){
-                    window.bridge.on('${moduleId}', function(renderFunc) {
+                })(function () {
+                    window.bridge.on('${moduleId}', function (renderFunc) {
                         require('vue-hot-reload-api').rerender('${moduleId}', renderFunc);
                     });
                 });
