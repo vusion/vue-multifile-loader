@@ -144,21 +144,22 @@ module.exports = function (content) {
                         requireString += '.locals';
 
                     styleInjectionCodes.push(`
-                        cssModules["${moduleName}"] = ${requireString};
-                        var superModules = this["${moduleName}"];
-                        if (superModules && this.$options.name === superModules.root)
-                            cssModules["${moduleName}"] = Object.assign({}, superModules, cssModules["${moduleName}"]);
+                        var oldLocals = this['${moduleName}'];
+                        var newLocals = ${requireString};
+                        if (oldLocals && oldLocals.root === '${vueName}')
+                            newLocals = Object.assign({}, oldLocals, newLocals);
+                        cssModules['${moduleName}'] = newLocals;
                     `);
 
                     if (!needsHotReload)
-                        styleInjectionCodes.push(invokeStyle(`this["${moduleName}"] = cssModules["${moduleName}"]`));
+                        styleInjectionCodes.push(invokeStyle(`this['${moduleName}'] = cssModules['${moduleName}']`));
                     else {
                         // handle hot reload for CSS modules.
                         // we store the exported locals in an object and proxy to it by
                         // defining getters inside component instances' lifecycle hook.
-                        styleInjectionCodes.push(invokeStyle(`cssModules["${moduleName}"]`));
-                        styleInjectionCodes.push(`Object.defineProperty(this, "${moduleName}", {
-                            get: function () { return cssModules["${moduleName}"] },
+                        styleInjectionCodes.push(invokeStyle(`cssModules['${moduleName}']`));
+                        styleInjectionCodes.push(`Object.defineProperty(this, '${moduleName}', {
+                            get: function () { return cssModules['${moduleName}'] },
                             configurable: true,
                         });`);
 
@@ -167,10 +168,12 @@ module.exports = function (content) {
                         outputs.push(`
                             module.hot && module.hot.accept([${requirePath}], function () {
                                 // 1. check if style has been injected
-                                var oldLocals = cssModules['${moduleName}'];
+                                var oldLocals = this['${moduleName}'];
                                 if (!oldLocals) return;
                                 // 2. re-import (side effect: updates the <style>)
                                 var newLocals = ${requireString};
+                                if (oldLocals && oldLocals.root === '${vueName}')
+                                    newLocals = Object.assign({}, oldLocals, newLocals);
                                 // 3. compare new and old locals to see if selectors changed
                                 if (JSON.stringify(newLocals) === JSON.stringify(oldLocals)) return;
                                 // 4. locals changed. Update and force re-render.
