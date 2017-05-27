@@ -168,7 +168,7 @@ module.exports = function (content) {
                         outputs.push(`
                             module.hot && module.hot.accept([${requirePath}], function () {
                                 // 1. check if style has been injected
-                                var oldLocals = this['${moduleName}'];
+                                var oldLocals = cssModules['${moduleName}'];
                                 if (!oldLocals) return;
                                 // 2. re-import (side effect: updates the <style>)
                                 var newLocals = ${requireString};
