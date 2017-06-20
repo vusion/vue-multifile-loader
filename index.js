@@ -18,7 +18,13 @@ module.exports = function (content) {
     const isServer = this.options.target === 'node';
     const isProduction = this.minimize || process.env.NODE_ENV === 'production';
 
-    const options = this.options.__vueOptions__ = Object.assign({}, this.options.vue, loaderUtils.getOptions(this));
+    const options = Object.assign({}, this.options.vue, loaderUtils.getOptions(this));
+    // #824 avoid multiple webpack runs complaining about unknown option
+    Object.defineProperty(this.options, '__vueOptions__', {
+        value: options,
+        enumerable: true,
+        configurable: true,
+    });
 
     const vuePath = path.dirname(this.resourcePath);
     const vueName = path.basename(vuePath, '.vue');
