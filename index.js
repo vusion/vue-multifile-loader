@@ -71,14 +71,21 @@ module.exports = function (content) {
         }
 
         return extractor.extract({
-            use: 'css-loader' + cssLoaderOptions + '!import-global-loader',
+            use: 'css-loader' + cssLoaderOptions + '!' + styleCompilerPath + styleCompilerOptions + '!import-global-loader',
             fallback: 'vue-style-loader',
         });
     };
 
+    const stringifyLoaders = (loaders) => loaders.map((obj) => {
+        if (obj && typeof obj === 'object' && typeof obj.loader === 'string')
+            return obj.loader + (obj.options ? '?' + JSON.stringify(obj.options) : '');
+        else
+            return obj;
+    }).join('!');
+
     const defaultLoaders = {
         html: templateCompilerPath + templateCompilerOptions,
-        css: options.extractCSS ? getCSSExtractLoader() : 'vue-style-loader!css-loader' + cssLoaderOptions + '!' + styleCompilerPath + styleCompilerOptions + '!import-global-loader',
+        css: options.extractCSS ? stringifyLoaders(getCSSExtractLoader()) : 'vue-style-loader!css-loader' + cssLoaderOptions + '!' + styleCompilerPath + styleCompilerOptions + '!import-global-loader',
         /* eslint-disable no-nested-ternary */
         js: hasBuble ? ('buble-loader' + bubleOptions) : hasBabel ? 'babel-loader' : '',
     };
