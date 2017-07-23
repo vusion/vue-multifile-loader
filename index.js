@@ -18,11 +18,19 @@ module.exports = function (content) {
     const isServer = this.options.target === 'node';
     const isProduction = this.minimize || process.env.NODE_ENV === 'production';
 
-    const options = Object.assign({}, this.options.vue, loaderUtils.getOptions(this));
+    const options = Object.assign({
+        esModule: true,
+    }, this.options.vue, loaderUtils.getOptions(this));
+
+    // disable esModule in inject mode
+    // because import/export must be top-level
+    if (options.inject)
+        options.esModule = false;
+
     // #824 avoid multiple webpack runs complaining about unknown option
     Object.defineProperty(this.options, '__vueOptions__', {
         value: options,
-        enumerable: true,
+        enumerable: false,
         configurable: true,
     });
 
@@ -61,8 +69,9 @@ module.exports = function (content) {
         compilerModules: typeof options.compilerModules === 'string' ? options.compilerModules : undefined,
     });
 
-    const getRequirePath = (loader, filePath) => loaderUtils.stringifyRequest(this, '!!' + loader + '!' + filePath);
-    const getRequire = (loader, filePath) => `require(${getRequirePath(loader, filePath)})`;
+    const getRequirePath = (type, filePath) => loaderUtils.stringifyRequest(this, '!!' + loaders[type] + '!' + filePath);
+    const getRequire = (type, filePath) => `require(${getRequirePath(type, filePath)})`;
+    const getImport = (type, filePath) => `import __vue_${type}__ from ${getRequirePath(type, filePath)};`;
 
     const getCSSExtractLoader = () => {
         let extractor;
@@ -127,7 +136,7 @@ module.exports = function (content) {
             styleInjectionCodes.push('var i;');
 
         const handleStyle = (filePath, moduleName) => {
-            let requireString = getRequire(loaders.css, filePath);
+            let requireString = getRequire('css', filePath);
 
             const hasStyleLoader = true;
             const hasVueStyleLoader = true;
@@ -176,7 +185,7 @@ module.exports = function (content) {
                             configurable: true,
                         });`);
 
-                        const requirePath = getRequirePath(loaders.css, filePath);
+                        const requirePath = getRequirePath('css', filePath);
 
                         outputs.push(`
                             module.hot && module.hot.accept([${requirePath}], function () {
@@ -216,42 +225,46 @@ module.exports = function (content) {
     //   moduleIdentifier (server only)
     // )
     const componentRequirePath = loaderUtils.stringifyRequest(this, '!' + componentNormalizerPath);
-    outputs.push(`var Component = require(${componentRequirePath})(`);
+    outputs.push(`var normalizeComponent = require(${componentRequirePath});`);
 
     // <script>
     outputs.push('/* script */');
     const jsFilePath = this.resourcePath;
-    let scriptRequireString = getRequire(loaders.js, jsFilePath);
+    if (options.esModule)
+        outputs.push(getImport('js', jsFilePath));
+    else
+        outputs.push('var __vue_js__ = ' + getRequire('js', jsFilePath));
     // inject loader interop
     if (options.inject)
-        scriptRequireString += '(injections)';
-    outputs.push(scriptRequireString + ',');
+        outputs.push('__vue_js__ = __vue_js__(injections)');
 
-    // <script>
+    // <template>
     outputs.push('/* template */');
     // add require for template
     const htmlFilePath = path.join(vuePath, 'index.html');
     const htmlExists = fs.existsSync(htmlFilePath);
     if (htmlExists) {
-        const templateRequireString = getRequire(loaders.html, htmlFilePath);
-        outputs.push(templateRequireString + ',');
+        if (options.esModule)
+            outputs.push(getImport('html', htmlFilePath));
+        else
+            outputs.push('var __vue_html__ = ' + getRequire('html', htmlFilePath));
     } else
-        outputs.push('null,');
+        outputs.push('var __vue_html__ = null');
 
     // style
     outputs.push('/* styles */');
-    outputs.push((cssModuleExists || cssIndexExists ? 'injectStyle' : 'null') + ',');
+    outputs.push('var __vue_css__ = ' + (cssModuleExists || cssIndexExists ? 'injectStyle' : 'null'));
 
     // @TODO: scopeId
     outputs.push('/* scopeId */');
-    outputs.push('null,');
+    outputs.push('var __vue_scopeId__ = null');
 
     // moduleIdentifier (server only)
     outputs.push('/* moduleIdentifier (server only) */');
-    outputs.push(isServer ? JSON.stringify(hash(this.request)) : 'null');
+    outputs.push('var __vue_module_identifier__ = ' + (isServer ? JSON.stringify(hash(this.request)) : 'null'));
 
     // close normalizeComponent call
-    outputs.push(')');
+    outputs.push('var Component = normalizeComponent(__vue_js__, __vue_html__, __vue_css__, __vue_scopeId__, __vue_module_identifier__)');
 
     // development-only code
     if (!isProduction) {
@@ -320,12 +333,9 @@ module.exports = function (content) {
         }
 
         // final export
-        if (options.esModule) {
-            outputs.push(`
-                exports.__esModule = true;
-                exports['default'] = Component.exports;
-            `);
-        } else
+        if (options.esModule)
+            outputs.push(`export default Component.exports;`);
+        else
             outputs.push(`module.exports = Component.exports;`);
     } else {
         // inject-loader support
