@@ -46,7 +46,7 @@ module.exports = function (content) {
         minimize: isProduction,
         modules: true,
         importLoaders: 1,
-        localIdentName: vueName + '_[local]',
+        localIdentName: options.cssModules && options.cssModules.localIdentName ? options.cssModules.localIdentName.replace(/\[name\]/gi, vueName) : '[hash:base64]',
     });
 
     const styleCompilerOptions = '?' + JSON.stringify({
