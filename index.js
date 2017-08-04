@@ -165,13 +165,7 @@ module.exports = function (content) {
                     if (!hasStyleLoader)
                         requireString += '.locals';
 
-                    styleInjectionCodes.push(`
-                        var oldLocals = this['${moduleName}'];
-                        var newLocals = ${requireString};
-                        if (oldLocals && oldLocals.root === '${vueName}')
-                            newLocals = Object.assign({}, oldLocals, newLocals);
-                        cssModules['${moduleName}'] = newLocals;
-                    `);
+                    styleInjectionCodes.push(`cssModules['${moduleName}'] = ${requireString};`);
 
                     if (!needsHotReload)
                         styleInjectionCodes.push(invokeStyle(`this['${moduleName}'] = cssModules['${moduleName}']`));
@@ -194,8 +188,6 @@ module.exports = function (content) {
                                 if (!oldLocals) return;
                                 // 2. re-import (side effect: updates the <style>)
                                 var newLocals = ${requireString};
-                                if (oldLocals && oldLocals.root === '${vueName}')
-                                    newLocals = Object.assign({}, oldLocals, newLocals);
                                 // 3. compare new and old locals to see if selectors changed
                                 if (JSON.stringify(newLocals) === JSON.stringify(oldLocals)) return;
                                 // 4. locals changed. Update and force re-render.
@@ -299,12 +291,12 @@ module.exports = function (content) {
                         module.hot.accept();
             `);
 
-            if (!isProduction) {
+            if (process.env.DEBUG) {
                 outputs.push(`
                     let Ctor = Component.options._Ctor;
                     if (Ctor) {
+                        console.warn('[vue-multifile-loader]', Component.options.name, 'Ctor will be removed.');
                         Ctor.length > 1 && console.warn('[vue-multifile-loader] Ctor.length > 1');
-                        delete Component.options._Ctor;
 
                         // Ctor = Ctor[0];
                         // if (Ctor.extendOptions !== Component.options);
@@ -312,7 +304,9 @@ module.exports = function (content) {
                 `);
             }
 
-            outputs.push(`if (!module.hot.data) {
+            outputs.push(`
+                        delete Component.options._Ctor;
+                        if (!module.hot.data) {
                             hotAPI.createRecord('${moduleId}', Component.options);
                         } else {`
             );
