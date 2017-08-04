@@ -297,7 +297,22 @@ module.exports = function (content) {
                         hotAPI.install(require('vue'), false);
                         if (!hotAPI.compatible) return;
                         module.hot.accept();
-                        if (!module.hot.data) {
+            `);
+
+            if (!isProduction) {
+                outputs.push(`
+                    let Ctor = Component.options._Ctor;
+                    if (Ctor) {
+                        Ctor.length > 1 && console.warn('[vue-multifile-loader] Ctor.length > 1');
+                        delete Component.options._Ctor;
+
+                        // Ctor = Ctor[0];
+                        // if (Ctor.extendOptions !== Component.options);
+                    }
+                `);
+            }
+
+            outputs.push(`if (!module.hot.data) {
                             hotAPI.createRecord('${moduleId}', Component.options);
                         } else {`
             );
