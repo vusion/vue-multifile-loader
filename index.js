@@ -86,7 +86,7 @@ module.exports = function (content) {
         }
 
         return extractor.extract({
-            use: 'css-loader' + cssLoaderOptions + '!' + styleCompilerPath + styleCompilerOptions + '!import-global-loader',
+            use: 'css-loader' + cssLoaderOptions + '!' + styleCompilerPath + styleCompilerOptions + '!import-global-loader!icon-font-loader',
             fallback: 'vue-style-loader',
         });
     };
@@ -100,7 +100,7 @@ module.exports = function (content) {
 
     const defaultLoaders = {
         html: templateCompilerPath + templateCompilerOptions,
-        css: options.extractCSS ? stringifyLoaders(getCSSExtractLoader()) : 'vue-style-loader!css-loader' + cssLoaderOptions + '!' + styleCompilerPath + styleCompilerOptions + '!import-global-loader',
+        css: options.extractCSS ? stringifyLoaders(getCSSExtractLoader()) : 'vue-style-loader!css-loader' + cssLoaderOptions + '!' + styleCompilerPath + styleCompilerOptions + '!import-global-loader!icon-font-loader',
         /* eslint-disable no-nested-ternary */
         js: hasBuble ? ('buble-loader' + bubleOptions) : hasBabel ? 'babel-loader' : '',
     };

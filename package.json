@@ -1,7 +1,7 @@
 {
   "name": "vue-multifile-loader",
   "description": "Webpack loader for multifile Vue components.",
-  "version": "13.0.4",
+  "version": "13.1.0",
   "author": "Rainfore <rainforest92@126.com>",
   "main": "./index.js",
   "repository": "vusion/vue-multifile-loader",
@@ -37,6 +37,7 @@
     "vue-template-compiler": "*",
     "css-loader": "*",
     "vue-style-loader": "*",
-    "import-global-loader": "*"
+    "import-global-loader": "*",
+    "icon-font-loader": "*"
   }
 }
