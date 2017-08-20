@@ -41,13 +41,13 @@ module.exports = function (content) {
     const context = (this._compiler && this._compiler.context) || this.options.context || process.cwd();
     const moduleId = 'data-v-' + genId(vuePath, context, options.hashKey);
 
-    const cssLoaderOptions = '?' + JSON.stringify({
+    const cssLoaderOptions = '?' + JSON.stringify(Object.assign({
         sourceMap: !isProduction && this.sourceMap && options.cssSourceMap !== false,
         minimize: isProduction,
         modules: true,
-        importLoaders: 1,
-        localIdentName: options.cssModules && options.cssModules.localIdentName ? options.cssModules.localIdentName.replace(/\[name\]/gi, vueName) : '[hash:base64]',
-    });
+        importLoaders: 3,
+        localIdentName: '[hash:base64]',
+    }, options.cssModules));
 
     const styleCompilerOptions = '?' + JSON.stringify({
         // a marker for vue-style-loader to know that this is an import from a vue file
