@@ -86,7 +86,7 @@ module.exports = function (content) {
         }
 
         return extractor.extract({
-            use: 'css-loader' + cssLoaderOptions + '!' + styleCompilerPath + styleCompilerOptions + '!import-global-loader!icon-font-loader',
+            use: 'css-loader' + cssLoaderOptions + '!icon-font-loader!' + styleCompilerPath + styleCompilerOptions + '!import-global-loader',
             fallback: 'vue-style-loader',
         });
     };
