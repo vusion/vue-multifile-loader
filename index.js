@@ -5,13 +5,19 @@ const loaderUtils = require('loader-utils');
 const tryRequire = require('vusion-vue-loader/lib/utils/try-require');
 
 const genId = require('vusion-vue-loader/lib/utils/gen-id');
-const styleCompilerPath = require.resolve('vusion-vue-loader/lib/style-compiler');
+let styleCompilerPath = require.resolve('vusion-vue-loader/lib/style-compiler');
 const templateCompilerPath = require.resolve('vusion-vue-loader/lib/template-compiler');
 const componentNormalizerPath = require.resolve('vusion-vue-loader/lib/component-normalizer');
 
 // check whether default js loader exists
 const hasBabel = !!tryRequire('babel-loader');
 const hasBuble = !!tryRequire('buble-loader');
+
+const defaultLang = {
+    template: 'html',
+    styles: 'css',
+    script: 'js'
+}
 
 module.exports = function (content) {
     this.cacheable();
@@ -69,7 +75,14 @@ module.exports = function (content) {
         compilerModules: typeof options.compilerModules === 'string' ? options.compilerModules : undefined,
     });
 
-    const getRequirePath = (type, filePath) => loaderUtils.stringifyRequest(this, '!!' + loaders[type] + '!' + filePath);
+    const getRequirePath = (type, filePath) => {
+        let loader = loaders[type];
+        if (preLoaders[type])
+            loader = loader + '!' + preLoaders[type];
+        else if (postLoaders[type])
+            loader = postLoaders[type] + '!' + loader;
+        return loaderUtils.stringifyRequest(this, '!!' + loader + '!' + filePath)    
+    };
     const getRequire = (type, filePath) => `require(${getRequirePath(type, filePath)})`;
     const getImport = (type, filePath) => `import __vue_${type}__ from ${getRequirePath(type, filePath)};`;
 
@@ -86,7 +99,7 @@ module.exports = function (content) {
         }
 
         return extractor.extract({
-            use: 'css-loader' + cssLoaderOptions + '!icon-font-loader!' + styleCompilerPath + styleCompilerOptions + '!import-global-loader',
+            use: 'css-loader' + cssLoaderOptions + '!' + styleCompilerPath + styleCompilerOptions,
             fallback: 'vue-style-loader',
         });
     };
@@ -100,7 +113,7 @@ module.exports = function (content) {
 
     const defaultLoaders = {
         html: templateCompilerPath + templateCompilerOptions,
-        css: options.extractCSS ? stringifyLoaders(getCSSExtractLoader()) : 'vue-style-loader!css-loader' + cssLoaderOptions + '!icon-font-loader!' + styleCompilerPath + styleCompilerOptions + '!import-global-loader',
+        css: options.extractCSS ? stringifyLoaders(getCSSExtractLoader()) : 'vue-style-loader!css-loader' + cssLoaderOptions + '!' + styleCompilerPath + styleCompilerOptions,
         /* eslint-disable no-nested-ternary */
         js: hasBuble ? ('buble-loader' + bubleOptions) : hasBabel ? 'babel-loader' : '',
     };
@@ -108,6 +121,11 @@ module.exports = function (content) {
     // check if there are custom loaders specified via
     // webpack config, otherwise use defaults
     const loaders = Object.assign({}, defaultLoaders, options.loaders);
+    const preLoaders = options.preLoaders || {};
+    const postLoaders = options.postLoaders || {};
+    const midLoaders = options.midLoaders || {};
+
+    styleCompilerPath = (midLoaders.css ? midLoaders.css + '!' : '') + styleCompilerPath;
 
     /**
      * Start to output
