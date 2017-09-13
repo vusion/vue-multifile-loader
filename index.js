@@ -34,11 +34,7 @@ module.exports = function (content) {
         options.esModule = false;
 
     // #824 avoid multiple webpack runs complaining about unknown option
-    Object.defineProperty(this.options, '__vueOptions__', {
-        value: options,
-        enumerable: false,
-        configurable: true,
-    });
+    this.options.__vueOptions__ = Object.assign({}, this.options.__vueOptions__, options);
 
     const vuePath = path.dirname(this.resourcePath);
     const vueName = path.basename(vuePath, '.vue');
