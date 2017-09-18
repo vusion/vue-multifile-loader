@@ -16,8 +16,8 @@ const hasBuble = !!tryRequire('buble-loader');
 const defaultLang = {
     template: 'html',
     styles: 'css',
-    script: 'js'
-}
+    script: 'js',
+};
 
 module.exports = function (content) {
     this.cacheable();
@@ -75,9 +75,9 @@ module.exports = function (content) {
         let loader = loaders[type];
         if (preLoaders[type])
             loader = loader + '!' + preLoaders[type];
-        else if (postLoaders[type])
+        if (postLoaders[type])
             loader = postLoaders[type] + '!' + loader;
-        return loaderUtils.stringifyRequest(this, '!!' + loader + '!' + filePath)    
+        return loaderUtils.stringifyRequest(this, '!!' + loader + '!' + filePath);
     };
     const getRequire = (type, filePath) => `require(${getRequirePath(type, filePath)})`;
     const getImport = (type, filePath) => `import __vue_${type}__ from ${getRequirePath(type, filePath)};`;
@@ -95,7 +95,7 @@ module.exports = function (content) {
         }
 
         return extractor.extract({
-            use: 'css-loader' + cssLoaderOptions + '!' + styleCompilerPath + styleCompilerOptions,
+            use: 'css-loader' + cssLoaderOptions,
             fallback: 'vue-style-loader',
         });
     };
@@ -109,7 +109,7 @@ module.exports = function (content) {
 
     const defaultLoaders = {
         html: templateCompilerPath + templateCompilerOptions,
-        css: options.extractCSS ? stringifyLoaders(getCSSExtractLoader()) : 'vue-style-loader!css-loader' + cssLoaderOptions + '!' + styleCompilerPath + styleCompilerOptions,
+        css: (options.extractCSS ? stringifyLoaders(getCSSExtractLoader()) : 'vue-style-loader!css-loader' + cssLoaderOptions) + '!' + styleCompilerPath + styleCompilerOptions,
         /* eslint-disable no-nested-ternary */
         js: hasBuble ? ('buble-loader' + bubleOptions) : hasBabel ? 'babel-loader' : '',
     };
