@@ -5,7 +5,7 @@ const loaderUtils = require('loader-utils');
 const tryRequire = require('vusion-vue-loader/lib/utils/try-require');
 
 const genId = require('vusion-vue-loader/lib/utils/gen-id');
-let styleCompilerPath = require.resolve('vusion-vue-loader/lib/style-compiler');
+const styleCompilerPath = require.resolve('vusion-vue-loader/lib/style-compiler');
 const templateCompilerPath = require.resolve('vusion-vue-loader/lib/template-compiler');
 const componentNormalizerPath = require.resolve('vusion-vue-loader/lib/component-normalizer');
 
@@ -107,21 +107,20 @@ module.exports = function (content) {
             return obj;
     }).join('!');
 
-    const defaultLoaders = {
-        html: templateCompilerPath + templateCompilerOptions,
-        css: (options.extractCSS ? stringifyLoaders(getCSSExtractLoader()) : 'vue-style-loader!css-loader' + cssLoaderOptions) + '!' + styleCompilerPath + styleCompilerOptions,
-        /* eslint-disable no-nested-ternary */
-        js: hasBuble ? ('buble-loader' + bubleOptions) : hasBabel ? 'babel-loader' : '',
-    };
-
     // check if there are custom loaders specified via
     // webpack config, otherwise use defaults
-    const loaders = Object.assign({}, defaultLoaders, options.loaders);
     const preLoaders = options.preLoaders || {};
     const postLoaders = options.postLoaders || {};
     const midLoaders = options.midLoaders || {};
 
-    styleCompilerPath = (midLoaders.css ? midLoaders.css + '!' : '') + styleCompilerPath;
+    const defaultLoaders = {
+        html: templateCompilerPath + templateCompilerOptions,
+        css: (options.extractCSS ? stringifyLoaders(getCSSExtractLoader()) : 'vue-style-loader!css-loader' + cssLoaderOptions)
+            + '!' + (midLoaders.css ? midLoaders.css + '!' : '') + styleCompilerPath + styleCompilerOptions,
+        /* eslint-disable no-nested-ternary */
+        js: hasBuble ? ('buble-loader' + bubleOptions) : hasBabel ? 'babel-loader' : '',
+    };
+    const loaders = Object.assign({}, defaultLoaders, options.loaders);
 
     /**
      * Start to output
