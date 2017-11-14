@@ -59,13 +59,15 @@ module.exports = function (content) {
     });
 
     const bubleOptions = hasBuble && options.buble ? '?' + JSON.stringify(options.buble) : '';
+    const bubleTemplateOptions = Object.assign({}, options.buble);
+    bubleTemplateOptions.transforms = Object.assign({}, bubleTemplateOptions.transforms);
+    bubleTemplateOptions.transforms.stripWithFunctional = false;
 
     const templateCompilerOptions = '?' + JSON.stringify({
         id: moduleId,
         transformToRequire: options.transformToRequire,
         preserveWhitespace: options.preserveWhitespace,
-        buble: options.buble,
-        isServer: options.isServer,
+        buble: bubleTemplateOptions,
         // only pass compilerModules if it's a path string
         compilerModules: typeof options.compilerModules === 'string' ? options.compilerModules : undefined,
     });
@@ -333,23 +335,6 @@ module.exports = function (content) {
             // dispose
             outputs.push('module.hot.dispose(function (data) {' + (cssModules ? 'data.cssModules = cssModules;' : '') + 'disposed = true; });');
             outputs.push('})()}');
-            // bridge
-            options.isServer && outputs.push(`
-                (function (cb) {
-                    var elapsedCount = 0;
-                    var getBridgeTimer = setInterval(() => {
-                        elapsedCount++;
-                        if (window.bridge || elapsedCount > 30) {
-                            clearInterval(getBridgeTimer);
-                            window.bridge && cb();
-                        }
-                    }, 100);
-                })(function () {
-                    window.bridge.on('${moduleId}', function (renderFunc) {
-                        require('vue-hot-reload-api').rerender('${moduleId}', renderFunc);
-                    });
-                });
-            `);
         }
 
         // final export
