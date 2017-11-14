@@ -1,5 +1,7 @@
 # vue-multifile-loader
 
+> Sync to vue-loader@13.5.0
+
 ## Equivalent
 
 ```

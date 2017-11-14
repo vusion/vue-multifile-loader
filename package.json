@@ -1,7 +1,7 @@
 {
   "name": "vue-multifile-loader",
   "description": "Webpack loader for multifile Vue components.",
-  "version": "14.0.2",
+  "version": "14.1.0",
   "author": "Rainfore <rainforest92@126.com>",
   "main": "./index.js",
   "repository": "vusion/vue-multifile-loader",
@@ -27,7 +27,7 @@
     "hash-sum": "^1.0.2",
     "loader-utils": "^1.1.0",
     "vue-hot-reload-api": "^2.1.0",
-    "vusion-vue-loader": "^14.0.2"
+    "vusion-vue-loader": "~14.1.0"
   },
   "devDependencies": {
     "eslint": "^4.3.0",
