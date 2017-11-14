@@ -4,7 +4,6 @@ const hash = require('hash-sum');
 const loaderUtils = require('loader-utils');
 const tryRequire = require('vusion-vue-loader/lib/utils/try-require');
 
-const genId = require('vusion-vue-loader/lib/utils/gen-id');
 const styleCompilerPath = require.resolve('vusion-vue-loader/lib/style-compiler');
 const templateCompilerPath = require.resolve('vusion-vue-loader/lib/template-compiler');
 const componentNormalizerPath = require.resolve('vusion-vue-loader/lib/component-normalizer');
@@ -41,7 +40,7 @@ module.exports = function (content) {
     const vueDir = path.dirname(vuePath);
 
     const context = (this._compiler && this._compiler.context) || this.options.context || process.cwd();
-    const moduleId = 'data-v-' + genId(vuePath, context, options.hashKey);
+    const moduleId = 'data-v-' + hash(vuePath);
 
     const cssLoaderOptions = '?' + JSON.stringify(Object.assign({
         sourceMap: !isProduction && this.sourceMap && options.cssSourceMap !== false,
@@ -127,7 +126,7 @@ module.exports = function (content) {
      */
     let outputs = [];
 
-    const needsHotReload = !isServer && !isProduction;
+    const needsHotReload = !isServer && !isProduction && options.hotReload !== false;
     if (needsHotReload)
         outputs.push('var disposed = false;');
 
@@ -225,6 +224,7 @@ module.exports = function (content) {
     // normalizeComponent(
     //   scriptExports,
     //   compiledTemplate,
+    //   functionalTemplate,
     //   injectStyles,
     //   scopeId,
     //   moduleIdentifier (server only)
@@ -256,6 +256,10 @@ module.exports = function (content) {
     } else
         outputs.push('var __vue_html__ = null');
 
+    // template functional
+    outputs.push('/* template functional */');
+    outputs.push('var __vue_template_functional__ = false');
+
     // style
     outputs.push('/* styles */');
     outputs.push('var __vue_css__ = ' + (cssModuleExists || cssIndexExists ? 'injectStyle' : 'null'));
@@ -269,7 +273,7 @@ module.exports = function (content) {
     outputs.push('var __vue_module_identifier__ = ' + (isServer ? JSON.stringify(hash(this.request)) : 'null'));
 
     // close normalizeComponent call
-    outputs.push('var Component = normalizeComponent(__vue_js__, __vue_html__, __vue_css__, __vue_scopeId__, __vue_module_identifier__)');
+    outputs.push('var Component = normalizeComponent(__vue_js__, __vue_html__, __vue_template_functional__, __vue_css__, __vue_scopeId__, __vue_module_identifier__)');
 
     // development-only code
     if (!isProduction) {
@@ -281,12 +285,6 @@ module.exports = function (content) {
         })) {
             console.error("named exports are not supported in *.vue files.");
         }`);
-        // check functional components used with templates
-        if (htmlExists) {
-            outputs.push(`if (Component.options.functional) {
-                console.error("[vue-multifile-loader] ${vueName}: functional components are not supported with templates, they should use render functions.");
-            }`);
-        }
     }
 
     // @TODO: add requires for customBlocks
