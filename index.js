@@ -281,6 +281,7 @@ module.exports = function (content) {
     if (!isProduction) {
         // add filename in dev
         outputs.push(`Component.options.__file = ${JSON.stringify(jsFilePath)};`);
+        outputs.push(`Component.options.__moduleId = ${JSON.stringify(moduleId)};`);
         // check named exports
         outputs.push(`if (Component.esModule && Object.keys(Component.esModule).some(function (key) {
             return key !== "default" && key !== "__esModule"
