@@ -40,7 +40,9 @@ module.exports = function (content) {
     const vueDir = path.dirname(vuePath);
 
     const context = (this._compiler && this._compiler.context) || this.options.context || process.cwd();
-    const moduleId = 'data-v-' + hash(vuePath);
+    const shortFilePath = path.relative(context, vuePath).replace(/^(\.\.[\\/])+/, '');
+
+    const moduleId = 'data-v-' + hash(isProduction ? (shortFilePath + '\n' + content) : shortFilePath);
 
     const cssLoaderOptions = '?' + JSON.stringify(Object.assign({
         sourceMap: !isProduction && this.sourceMap && options.cssSourceMap !== false,
