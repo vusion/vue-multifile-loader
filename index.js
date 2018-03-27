@@ -46,7 +46,7 @@ module.exports = function (content) {
 
     const cssLoaderOptions = '?' + JSON.stringify(Object.assign({
         sourceMap: !isProduction && this.sourceMap && options.cssSourceMap !== false,
-        minimize: isProduction,
+        minimize: isProduction && options.cssMinimize !== false,
         modules: true,
         importLoaders: 3,
         localIdentName: '[hash:base64]',
