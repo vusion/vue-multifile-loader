@@ -26,7 +26,6 @@ module.exports = function (content) {
     const options = Object.assign({
         esModule: true,
     }, this.options.vue, loaderUtils.getOptions(this));
-
     // disable esModule in inject mode
     // because import/export must be top-level
     if (options.inject)
@@ -84,6 +83,7 @@ module.exports = function (content) {
     };
     const getRequire = (type, filePath) => `require(${getRequirePath(type, filePath)})`;
     const getImport = (type, filePath) => `import __vue_${type}__ from ${getRequirePath(type, filePath)};`;
+    const getNamedExport = (type, filePath) => `export * from  ${getRequirePath(type, filePath)};`;
 
     const getCSSExtractLoader = () => {
         let extractor;
@@ -239,10 +239,12 @@ module.exports = function (content) {
     // <script>
     outputs.push('/* script */');
     const jsFilePath = this.resourcePath;
-    if (options.esModule)
+    if (options.esModule) {
+        outputs.push(getNamedExport('js', jsFilePath) + '\n');
         outputs.push(getImport('js', jsFilePath));
-    else
+    } else {
         outputs.push('var __vue_js__ = ' + getRequire('js', jsFilePath));
+    }
     // inject loader interop
     if (options.inject)
         outputs.push('__vue_js__ = __vue_js__(injections)');
@@ -284,12 +286,6 @@ module.exports = function (content) {
         // add filename in dev
         outputs.push(`Component.options.__file = ${JSON.stringify(jsFilePath)};`);
         outputs.push(`Component.options.__moduleId = ${JSON.stringify(moduleId)};`);
-        // check named exports
-        outputs.push(`if (Component.esModule && Object.keys(Component.esModule).some(function (key) {
-            return key !== "default" && key !== "__esModule"
-        })) {
-            console.error("named exports are not supported in *.vue files.");
-        }`);
     }
 
     // @TODO: add requires for customBlocks
@@ -353,7 +349,6 @@ module.exports = function (content) {
                 return Component.exports;
             };`;
     }
-
     // done
     return outputs.join('\n');
 };
