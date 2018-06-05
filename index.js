@@ -2,11 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const hash = require('hash-sum');
 const loaderUtils = require('loader-utils');
-const tryRequire = require('vusion-vue-loader/lib/utils/try-require');
+const tryRequire = require('@vusion/vue-loader/lib/utils/try-require');
 
-const styleCompilerPath = require.resolve('vusion-vue-loader/lib/style-compiler');
-const templateCompilerPath = require.resolve('vusion-vue-loader/lib/template-compiler');
-const componentNormalizerPath = require.resolve('vusion-vue-loader/lib/component-normalizer');
+const styleCompilerPath = require.resolve('@vusion/vue-loader/lib/style-compiler');
+const templateCompilerPath = require.resolve('@vusion/vue-loader/lib/template-compiler');
+const componentNormalizerPath = require.resolve('@vusion/vue-loader/lib/component-normalizer');
 
 // check whether default js loader exists
 const hasBabel = !!tryRequire('babel-loader');
