@@ -83,7 +83,7 @@ module.exports = function (content) {
     };
     const getRequire = (type, filePath) => `require(${getRequirePath(type, filePath)})`;
     const getImport = (type, filePath) => `import __vue_${type}__ from ${getRequirePath(type, filePath)};`;
-    const getNamedExport = (type, filePath) => `export * from  ${getRequirePath(type, filePath)};`;
+    const getNamedExport = (type, filePath) => `export * from ${getRequirePath(type, filePath)};`;
 
     const getCSSExtractLoader = () => {
         let extractor;
@@ -240,11 +240,11 @@ module.exports = function (content) {
     outputs.push('/* script */');
     const jsFilePath = this.resourcePath;
     if (options.esModule) {
-        outputs.push(getNamedExport('js', jsFilePath) + '\n');
+        outputs.push(getNamedExport('js', jsFilePath));
         outputs.push(getImport('js', jsFilePath));
-    } else {
+    } else
         outputs.push('var __vue_js__ = ' + getRequire('js', jsFilePath));
-    }
+
     // inject loader interop
     if (options.inject)
         outputs.push('__vue_js__ = __vue_js__(injections)');
