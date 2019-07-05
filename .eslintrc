@@ -2,6 +2,6 @@
     "extends": "vusion",
     "env": {
         "commonjs": true,
-        "node": true,
-    },
+        "node": true
+    }
 }
