@@ -8,9 +8,9 @@ module.exports = {
         chunkFilename: '[name].bundle.js',
         path: path.resolve(__dirname, 'dist'),
     },
+    mode: 'development',
     module: {
         rules: [
-            { test: /\.html$/, use: 'vue-template-loader' },
             {
                 test: /\.vue[\\/]index\.js$/,
                 use: [
@@ -30,7 +30,15 @@ module.exports = {
                 test: /\.css$/,
                 use: [
                     'vue-style-loader',
-                    'css-loader',
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            // enable CSS Modules
+                            modules: true,
+                            // customize generated class names
+                            // localIdentName: '[local]_[hash:base64:8]',
+                        },
+                    },
                 ],
             },
         ],
