@@ -1,9 +1,15 @@
 <template>
-    <div class="$style.root">xxxxx</div>
+    <div>
+        <my-component></my-component>
+    </div>
 </template>
 
 <script>
+import {myComponent} from './component.vue';
 export default {
+    components: {
+        myComponent,
+    },
     data(){
         return {
             a: 'vvvv'

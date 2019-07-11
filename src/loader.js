@@ -19,9 +19,9 @@ module.exports = function (content) {
     // mutilfile folder path
     const vueVirtualFilePath = path.dirname(this.resourcePath);
     // vue component name
-    const vueComponentName = path.basename(vueVirtualFilePath, '.vue');
+    // const vueComponentName = path.basename(vueVirtualFilePath, '.vue');
     // virtual file folder
-    const vueDir = path.dirname(vueVirtualFilePath);
+    // const vueDir = path.dirname(vueVirtualFilePath);
     this.resourcePath = vueVirtualFilePath;
     // loaderUtils.stringifyRequest(this, vueVirtualFilePath);
     // css module file path
@@ -32,7 +32,6 @@ module.exports = function (content) {
     const cssIndexFilePath = path.join(vueVirtualFilePath, 'index.css');
     const cssModuleExists = fs.existsSync(cssModuleFilePath);
     const cssIndexExists = fs.existsSync(cssIndexFilePath);
-
     try {
         let vueComponent = '';
         if (templateFileExists) {
@@ -50,7 +49,6 @@ module.exports = function (content) {
 
         if (cssIndexExists)
             vueComponent += globalCSSTemplate(fs.readFileSync(cssIndexFilePath));
-
         return vueComponent;
     } catch (error) {
         console.log(error);

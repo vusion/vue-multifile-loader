@@ -1,6 +1,7 @@
 const path = require('path');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
-
+// const moduleResolverFac = require('vue-cli-plugin-vusion/src-reborn/scenary/module-resolver/index');
+// const postcssPluginsFac = require('vue-cli-plugin-vusion/src-reborn/scenary/postcss/plugins');
 module.exports = {
     entry: './test/webpack/index.js',
     output: {
@@ -37,6 +38,38 @@ module.exports = {
                             modules: true,
                             // customize generated class names
                             // localIdentName: '[local]_[hash:base64:8]',
+                        },
+                    },
+                    // {
+                    //     loader: 'postcss-loader',
+
+                    // },
+
+                ],
+            },
+            {
+                test: /\.js$/,
+                exclude(filename) {
+                    console.log(filename);
+                    return /(node_modules|bower_components)/.test(filename);
+                },
+                use: {
+                    loader: 'babel-loader',
+
+                    options: {
+                        plugins: [
+                            '@babel/plugin-syntax-dynamic-import',
+                        ],
+                    },
+                },
+            },
+            {
+                test: /\.(png|jpg|gif|svg|eot|ttf|woff|woff2)$/,
+                use: [
+                    {
+                        loader: 'file-loader',
+                        options: {
+                            name: '[name].[hash:16].[ext]',
                         },
                     },
                 ],

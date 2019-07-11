@@ -1,6 +1,12 @@
-import { myComponent } from './component.vue';
 import Vue from 'vue';
-console.log(document.getElementById('app'));
+// import * as CloudUI from 'cloud-ui.vusion';
+// import { installComponents } from 'vusion-utils';
+// installComponents(CloudUI, Vue);
+
+// Vue.config.productionTip = false;
+// console.log(document.getElementById('app'));
+import myComponent from './test.vue';
+
 new Vue({
     render: (h) => h(myComponent),
 }).$mount('#app');

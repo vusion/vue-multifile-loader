@@ -24,15 +24,23 @@
     "loader"
   ],
   "devDependencies": {
+    "@babel/core": "^7.5.4",
+    "@babel/plugin-syntax-dynamic-import": "^7.2.0",
+    "babel-loader": "^8.0.6",
+    "cloud-ui.vusion": "^0.3.83",
     "css-loader": "^3.0.0",
     "eslint": "^6.0.0",
     "eslint-config-vusion": "^3.0.2",
+    "file-loader": "^4.0.0",
+    "proto-ui.vusion": "^0.3.59",
     "vue": "^2.6.10",
+    "vue-cli-plugin-vusion": "file:../vue-cli-plugin-vusion",
     "vue-loader": "^15.7.0",
     "vue-style-loader": "^4.1.2",
     "vue-template-compiler": "^2.6.10",
     "vue-template-loader": "^1.0.0",
     "vusion-hooks": "^0.2.2",
+    "vusion-utils": "^0.3.4",
     "webpack": "^4.35.2",
     "webpack-cli": "^3.3.5",
     "webpack-dev-server": "^3.7.2"
