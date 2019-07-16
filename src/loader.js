@@ -37,8 +37,6 @@ module.exports = function (content) {
         if (templateFileExists) {
             // vueComponent += htmlMarkerTemplate(fs.readFileSync(templateFilePath));
             vueComponent += htmlMarkerPathTemplate('./index.html');
-        } else {
-            vueComponent += htmlMarkerTemplate('');
         }
         const script = scriptTemplate(content);
         vueComponent += script; // scriptPathTemplate('./index.js');

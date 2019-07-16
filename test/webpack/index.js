@@ -5,7 +5,8 @@ import Vue from 'vue';
 
 // Vue.config.productionTip = false;
 // console.log(document.getElementById('app'));
-import myComponent from './test.vue';
+
+import myComponent from './test-extend.vue';
 
 new Vue({
     render: (h) => h(myComponent),

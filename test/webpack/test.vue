@@ -1,15 +1,17 @@
 <template>
     <div>
-        <my-component></my-component>
+        <!-- <my-component></my-component> -->
+        {{title}}
     </div>
 </template>
 
 <script>
 import {myComponent} from './component.vue';
 export default {
-    components: {
-        myComponent,
-    },
+    // components: {
+    //     myComponent,
+    // },
+    extends: myComponent,
     data(){
         return {
             a: 'vvvv'
