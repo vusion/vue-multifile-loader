@@ -21,9 +21,9 @@ module.exports = function (content) {
     result += script;
 
     if (fs.existsSync(path.join(vueFilePath, './module.css')))
-        result += templates.cssModulePath('./module.css');
+        result += templates.styleModulePath('./module.css');
     if (fs.existsSync(path.join(vueFilePath, './index.css')))
-        result += templates.cssNormalPath('./index.css');
+        result += templates.stylePath('./index.css');
 
     return result;
 };
